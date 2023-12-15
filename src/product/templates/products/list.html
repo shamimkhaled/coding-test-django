@@ -1,0 +1,218 @@
+{% extends 'website/base.html' %} {% block title %} Product List {% endblock %}
+{% block content %}
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Products </h1>
+  
+  
+</div>
+
+
+<div class="card">
+  <form action="{% url 'product:search' %}" method="GET" class="search card-header ">
+    
+    <div class="form-row justify-content-between">
+      <div class="col-md-2">
+        <input
+          type="text"
+          name="title"
+          value="{{ request.GET.title }}"
+          placeholder="Product Title"
+          class="form-control"
+        />
+      </div>
+      <div class="col-md-2">
+        <select  name="variants" id="selectvariant"  class="form-control">
+            <option selected disable>--Select A Variant--</option>
+             {% comment %} {% csrf_token %} {% endcomment %}
+            {% for variant in variants %} 
+            <option   selected >
+               {{variant.variant_title}}
+            </option>
+            {% endfor %} 
+           
+        </select>
+      </div>
+
+      <div class="col-md-3">
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text">Price Range</span>
+          </div>
+          <input
+            type="text"
+            name="price_from"
+            value="{{ request.GET.price_from }}"
+
+            aria-label="First name"
+            placeholder="From"
+            class="form-control"
+          />
+          <input
+            type="text"
+            name="price_to"
+            value="{{ request.GET.price_to }}"
+            aria-label="Last name"
+            placeholder="To"
+            class="form-control"
+          />
+        </div>
+      </div>
+      <div class="col-md-2">
+        <input
+          type="date"
+          name="date"
+          value="{{ request.GET.date }}"
+          placeholder="Date"
+          class="form-control"
+        />
+      </div>
+      <div class="col-md-1">
+        <button type="submit" name="search" class="btn btn-primary float-right">
+          <i class="fa fa-search"></i>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="card-body">
+    <!-- Display Search Query -->
+
+    <div class="table-response">
+      {% if products %}
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Variant</th>
+            <th width="90px">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          
+
+
+
+          {% for product in products %} 
+          <tr>
+            
+            <td> {{product.id}} </td>
+            <td>
+              {{ product.title }} <br /> 
+              Created at : {{ product.created_at|timesince }} ago
+            </td>
+            <td >
+             {{ product.description }}
+            </td>
+            
+
+            <td style="width: 505px;">
+              <dl
+                class="row mb-0"
+                style="height: 85px; overflow: hidden"
+                
+                id="variant"
+              >
+              {% for pvp in prod_var_price %}
+                <dt class="col-sm-3 pb-0"> {{pvp.product_variant_one}} / {{pvp.product_variant_two}}/</dt>
+                
+                <dd class="col-sm-9">
+                  <dl class="row mb-0">
+                    <dd class="col-sm-4 pb-0 font-weight-bold">Price : {{pvp.price}} </dd>
+                    <dd class="col-sm-8 pb-0">InStock : {{pvp.stock}}</dd>
+                  </dl>
+                </dd>
+                
+                {% endfor %}
+                
+              </dl>
+              <button
+                onclick="$('#variant').toggleClass('h-auto')"
+                class="btn btn-sm btn-link"
+              >
+                Show more
+              </button>
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'product:update.product' product.id %}" class="btn btn-success">
+                  Edit
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        
+
+        </tbody>
+      </table>
+      {% else %}
+      <div class="text-center">
+          <h2>No result found. Please try again.</h2>
+      </div>
+  {% endif %}
+    </div>
+  </div>
+  
+
+  <div class="card-footer">
+    <div class="row justify-content-between">
+      <div class="col-md-6">
+        {% if products %}
+        <p>Showing 1 to 2 out of {{ product_count }}</p>
+        {% else %}
+        <p> {{ product_count }} Item Found </p> 
+        {% endif %}
+      </div>
+
+
+
+      <div class="col-md-2">
+
+        <nav aria-label="Page navigation example">
+          <ul class="pagination justify-content-end">
+              {% if products.has_previous %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page=1" aria-label="First">
+                          <span aria-hidden="true">&laquo;&laquo;</span>
+                      </a>
+                  </li>
+              {% endif %}
+              {% if products.has_previous %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page={{ products.previous_page_number }}" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                      </a>
+                  </li>
+              {% endif %}
+              {% for num in products.paginator.page_range %}
+                  <li class="page-item {% if products.number == num %}active{% endif %}">
+                      <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                  </li>
+              {% endfor %}
+              {% if products.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page={{ products.next_page_number }}" aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                      </a>
+                  </li>
+              {% endif %}
+              {% if products.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page={{ products.paginator.num_pages }}" aria-label="Last">
+                          <span aria-hidden="true">&raquo;&raquo;</span>
+                      </a>
+                  </li>
+              {% endif %}
+          </ul>
+      </nav>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
